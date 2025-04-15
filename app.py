@@ -50,7 +50,7 @@ Built with 🧠 MobileNetV2 + Streamlit.
 # Load model
 @st.cache_resource
 def load_parkinson_model():
-    return load_model("parkinson_model.keras")
+    return load_model("parkinson_model1.keras")
 
 model = load_parkinson_model()
 class_labels = ['spiral_healthy', 'spiral_parkinson', 'wave_healthy', 'wave_parkinson']
