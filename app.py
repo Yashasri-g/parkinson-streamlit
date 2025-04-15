@@ -4,6 +4,9 @@ from tensorflow.keras.models import load_model
 from PIL import Image
 import tensorflow as tf
 
+# ✅ Must be the first Streamlit command
+st.set_page_config(page_title="Parkinson's Detection", layout="wide")
+
 # Custom CSS for styling
 st.markdown("""
     <style>
@@ -31,9 +34,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Set page config
-st.set_page_config(page_title="Parkinson's Detection", layout="wide")
-
 # Sidebar
 st.sidebar.image("https://i.imgur.com/zbw3mXb.png", use_column_width=True)
 st.sidebar.title("🧠 Parkinson's Detector")
@@ -55,7 +55,7 @@ def load_parkinson_model():
 model = load_parkinson_model()
 class_labels = ['spiral_healthy', 'spiral_parkinson', 'wave_healthy', 'wave_parkinson']
 
-# Main app
+# Main content
 st.title("🎯 Parkinson's Disease Detection App")
 st.write("Detect Parkinson’s from hand-drawn spiral/wave images using a deep learning model.")
 
