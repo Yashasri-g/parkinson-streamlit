@@ -1,10 +1,12 @@
 streamlit
 tensorflow
 scikit-learn
+xgboost
+joblib
 numpy
 pandas
 matplotlib
-Pillow
-joblib
+plotly
 librosa
 soundfile
+Pillow
