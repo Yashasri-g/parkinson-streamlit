@@ -61,7 +61,7 @@ st.set_page_config(page_title="Parkinson Detection App", layout="centered", page
 st.markdown("""
     <style>
     .stApp {
-        background: linear-gradient(135deg, #f3e5f5, #e1f5fe);
+        
         padding: 20px;
         font-family: 'Segoe UI', sans-serif;
     }
