@@ -11,3 +11,5 @@ librosa
 soundfile
 Pillow
 lightgbm
+scipy
+imblearn
