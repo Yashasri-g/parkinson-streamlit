@@ -11,7 +11,7 @@ import os
 image_model = tf.keras.models.load_model("parkinson_imagemodel.h5")
 audio_model = joblib.load("parkinson_audio_model.pkl")
 
-# Feature extraction
+# Extract audio features
 def extract_audio_features(audio_file):
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
@@ -22,43 +22,46 @@ def extract_audio_features(audio_file):
         if len(y) < sr * 1:
             raise ValueError("Audio file is too short")
 
-        # Extract 30 MFCCs to be safe; pipeline will handle what it needs
         mfccs = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=30)
         mfccs_mean = np.mean(mfccs.T, axis=0)
 
-        os.unlink(tmp_path)  # Cleanup
+        os.unlink(tmp_path)
         return mfccs_mean.reshape(1, -1)
 
     except Exception as e:
         st.error(f"Feature extraction failed: {str(e)}")
         return None
 
-# Predictions
+# Predict image
 def predict_image(image_file):
     img = Image.open(image_file).convert("RGB")
     img = img.resize((224, 224))
     img_array = tf.keras.preprocessing.image.img_to_array(img) / 255.0
     img_array = np.expand_dims(img_array, axis=0)
-    pred = image_model.predict(img_array)[0][0]
-    return "🧠 Parkinson Detected" if pred >= 0.5 else "✅ Healthy"
+    pred_prob = image_model.predict(img_array)[0][0]
+    label = "🧠 Parkinson Detected" if pred_prob >= 0.5 else "✅ Healthy"
+    return label, pred_prob
 
+# Predict audio
 def predict_audio(audio_file):
     features = extract_audio_features(audio_file)
     if features is not None:
         try:
             pred = audio_model.predict(features)[0]
-            return "🧠 Parkinson Detected" if pred == 1 else "✅ Healthy"
+            prob = audio_model.predict_proba(features)[0][1]
+            label = "🧠 Parkinson Detected" if pred == 1 else "✅ Healthy"
+            return label, prob
         except Exception as e:
             st.error(f"Prediction failed: {str(e)}")
-            return None
-    return None
+            return None, None
+    return None, None
 
-# UI Styling
+# UI Setup
 st.set_page_config(page_title="Parkinson Detection App", layout="centered", page_icon="🧬")
 st.markdown("""
     <style>
     .stApp {
-        background: linear-gradient(135deg, #e3f2fd, #fce4ec);
+        background: linear-gradient(135deg, #f3e5f5, #e1f5fe);
         padding: 20px;
         font-family: 'Segoe UI', sans-serif;
     }
@@ -75,36 +78,36 @@ st.markdown("""
         color: #6a1b9a;
         margin-bottom: 1.5em;
     }
-    .stRadio > div {
-        justify-content: center;
-    }
     </style>
 """, unsafe_allow_html=True)
 
 st.markdown("<div class='title'>Parkinson's Disease Detection</div>", unsafe_allow_html=True)
 st.markdown("<div class='subtitle'>Upload an image or audio sample for prediction</div>", unsafe_allow_html=True)
 
-# App navigation
+# Input type
 mode = st.radio("Choose input type", ["🖼️ Image", "🎧 Audio"], horizontal=True)
 
 # Image mode
 if mode == "🖼️ Image":
-    st.header("Upload a Spiral/Wave Image")
-    img_file = st.file_uploader("Upload an image", type=['jpg', 'jpeg', 'png'])
+    st.header("Upload an Image (Spiral/Wave)")
+    img_file = st.file_uploader("Upload image", type=['jpg', 'jpeg', 'png'])
     if img_file:
         st.image(Image.open(img_file), caption="Uploaded Image", use_column_width=True)
         if st.button("Predict Image"):
-            result = predict_image(img_file)
-            if result:
-                st.success(f"Prediction: {result}")
+            with st.spinner("Predicting..."):
+                label, prob = predict_image(img_file)
+                st.markdown(f"<h4 style='color:#4a148c;'>Prediction: {label}</h4>", unsafe_allow_html=True)
+                st.markdown(f"<small>Model Confidence: <b>{prob:.2f}</b></small>", unsafe_allow_html=True)
 
 # Audio mode
 elif mode == "🎧 Audio":
     st.header("Upload a .wav Audio File")
-    audio_file = st.file_uploader("Upload a .wav file", type=['wav'])
+    audio_file = st.file_uploader("Upload audio", type=['wav'])
     if audio_file:
         st.audio(audio_file)
         if st.button("Predict Audio"):
-            result = predict_audio(audio_file)
-            if result:
-                st.success(f"Prediction: {result}")
+            with st.spinner("Predicting..."):
+                label, prob = predict_audio(audio_file)
+                if label:
+                    st.markdown(f"<h4 style='color:#1565c0;'>Prediction: {label}</h4>", unsafe_allow_html=True)
+                    st.markdown(f"<small>Model Confidence: <b>{prob:.2f}</b></small>", unsafe_allow_html=True)
