@@ -9,7 +9,7 @@ import os
 
 # Load models
 image_model = tf.keras.models.load_model("parkinson_imagemodel.h5")
-audio_model = joblib.load("parkinson_audiomodel.pkl")
+audio_model = joblib.load("parkinson_audio_model.pkl")
 
 # Extract audio features
 def extract_audio_features(audio_file):
@@ -38,8 +38,8 @@ def predict_image(image_file):
     img = img.resize((224, 224))
     img_array = tf.keras.preprocessing.image.img_to_array(img) / 255.0
     img_array = np.expand_dims(img_array, axis=0)
-    label = "🧠 Parkinson Detected" if pred_prob >= 0.5 else "✅ Healthy"
-    return label, pred_prob
+    pred_prob = image_model.predict(img_array)[0][0]
+    return "🧠 Parkinson Detected" if pred_prob >= 0.5 else "✅ Healthy"
 
 # Predict audio
 def predict_audio(audio_file):
@@ -47,40 +47,16 @@ def predict_audio(audio_file):
     if features is not None:
         try:
             pred = audio_model.predict(features)[0]
-            label = "🧠 Parkinson Detected" if pred == 1 else "✅ Healthy"
-            return label, prob
+            return "🧠 Parkinson Detected" if pred == 1 else "✅ Healthy"
         except Exception as e:
             st.error(f"Prediction failed: {str(e)}")
-            return None, None
-    return None, None
+            return None
+    return None
 
 # UI Setup
 st.set_page_config(page_title="Parkinson Detection App", layout="centered", page_icon="🧬")
-st.markdown("""
-    <style>
-    .stApp {
-        
-        padding: 20px;
-        font-family: 'Segoe UI', sans-serif;
-    }
-    .title {
-        text-align: center;
-        font-size: 3em;
-        color: #4a148c;
-        font-weight: bold;
-        margin-bottom: 0.2em;
-    }
-    .subtitle {
-        text-align: center;
-        font-size: 1.3em;
-        color: #6a1b9a;
-        margin-bottom: 1.5em;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
-st.markdown("<div class='title'>Parkinson's Disease Detection</div>", unsafe_allow_html=True)
-st.markdown("<div class='subtitle'>Upload an image or audio sample for prediction</div>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align:center; color:#4a148c;'>Parkinson's Disease Detection</h1>", unsafe_allow_html=True)
+st.markdown("<h4 style='text-align:center; color:#6a1b9a;'>Upload an image or audio sample for prediction</h4>", unsafe_allow_html=True)
 
 # Input type
 mode = st.radio("Choose input type", ["🖼️ Image", "🎧 Audio"], horizontal=True)
@@ -93,9 +69,8 @@ if mode == "🖼️ Image":
         st.image(Image.open(img_file), caption="Uploaded Image", use_column_width=True)
         if st.button("Predict Image"):
             with st.spinner("Predicting..."):
-                label, prob = predict_image(img_file)
-                st.markdown(f"<h4 style='color:#4a148c;'>Prediction: {label}</h4>", unsafe_allow_html=True)
-                st.markdown(f"<small>Model Confidence: <b>{prob:.2f}</b></small>", unsafe_allow_html=True)
+                label = predict_image(img_file)
+                st.success(f"Prediction: {label}")
 
 # Audio mode
 elif mode == "🎧 Audio":
@@ -105,7 +80,6 @@ elif mode == "🎧 Audio":
         st.audio(audio_file)
         if st.button("Predict Audio"):
             with st.spinner("Predicting..."):
-                label, prob = predict_audio(audio_file)
+                label = predict_audio(audio_file)
                 if label:
-                    st.markdown(f"<h4 style='color:#1565c0;'>Prediction: {label}</h4>", unsafe_allow_html=True)
-                    st.markdown(f"<small>Model Confidence: <b>{prob:.2f}</b></small>", unsafe_allow_html=True)
+                    st.success(f"Prediction: {label}")
