@@ -38,7 +38,6 @@ def predict_image(image_file):
     img = img.resize((224, 224))
     img_array = tf.keras.preprocessing.image.img_to_array(img) / 255.0
     img_array = np.expand_dims(img_array, axis=0)
-    pred_prob = image_model.predict(img_array)[0][0]
     label = "🧠 Parkinson Detected" if pred_prob >= 0.5 else "✅ Healthy"
     return label, pred_prob
 
@@ -48,7 +47,6 @@ def predict_audio(audio_file):
     if features is not None:
         try:
             pred = audio_model.predict(features)[0]
-            prob = audio_model.predict_proba(features)[0][1]
             label = "🧠 Parkinson Detected" if pred == 1 else "✅ Healthy"
             return label, prob
         except Exception as e:
