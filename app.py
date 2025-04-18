@@ -9,7 +9,7 @@ import os
 
 # Load models
 image_model = tf.keras.models.load_model("parkinson_imagemodel.h5")
-audio_model = joblib.load("parkinson_audio_model.pkl")
+audio_model = joblib.load("parkinson_audiomodel.pkl")
 
 # Extract audio features
 def extract_audio_features(audio_file):
