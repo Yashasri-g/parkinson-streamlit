@@ -8,7 +8,7 @@ import tempfile
 import os
 
 # Load models
-image_model = tf.keras.models.load_model("parkinson_imagemodel.h5")
+image_model = tf.keras.models.load_model("parkinson_imagemodel.h5", compile=False)
 audio_model = joblib.load("parkinson_audiomodel.pkl")
 
 # Extract audio features
