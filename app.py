@@ -63,7 +63,7 @@ mode = st.radio("Choose input type", ["🖼️ Image", "🎧 Audio"], horizontal
 
 # Image mode
 if mode == "🖼️ Image":
-    st.header("Upload an Image (Spiral/Wave)")
+    st.header("Upload an Image (Spiral)")
     img_file = st.file_uploader("Upload image", type=['jpg', 'jpeg', 'png'])
     if img_file:
         st.image(Image.open(img_file), caption="Uploaded Image", use_column_width=True)
